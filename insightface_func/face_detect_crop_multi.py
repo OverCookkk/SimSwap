@@ -61,10 +61,15 @@ class Face_detect_crop:
                 model.prepare(ctx_id)
 
     def get(self, img, crop_size, max_num=0):
+        # （1）bboxes 表示从图像中检测到的人脸框（bounding boxes），是一个二维的数组，形状为 (N, 4)，其中 N 是检测得到的人脸框的数量，
+        # 4 表示每个人脸框是一个四元组 (x1,y1,x2,y2)，(x1,y1) 表示左上角坐标，(x2,y2) 表示右下角坐标；
+        # （2）kpss 表示从图像中检测到的关键点位置（keypoints），每个关键点是一个二元组 (x,y)，表示关键点在图像中的坐标位置。
+        # 这些结果可以被用于进一步的人脸识别、面部表情识别、人脸年龄、性别等属性分析。
         bboxes, kpss = self.det_model.detect(img,
                                              threshold=self.det_thresh,
                                              max_num=max_num,
                                              metric='default')
+        # 第0维为0，表示检测到的人脸框数量为0
         if bboxes.shape[0] == 0:
             return None
         ret = []
@@ -76,13 +81,17 @@ class Face_detect_crop:
         #         kps = kpss[i]
         #     M, _ = face_align.estimate_norm(kps, crop_size, mode ='None') 
         #     align_img = cv2.warpAffine(img, M, (crop_size, crop_size), borderValue=0.0)
+
+        # 由于人脸的差异，需要保证人脸在三个方面：大小、姿态和位置 保持一致，所以需要对人脸进行仿射变换。
         align_img_list = []
         M_list = []
         for i in range(bboxes.shape[0]):
             kps = None
             if kpss is not None:
                 kps = kpss[i]
-            M, _ = face_align.estimate_norm(kps, crop_size, mode = self.mode) 
+            # estimate_norm() 函数是用来进行人脸对齐的计算，使用keypoints计算出仿射变换矩阵；其输出结果包含两个变量: M 表示可用于对齐的仿射变换矩阵
+            M, _ = face_align.estimate_norm(kps, crop_size, mode=self.mode)  # crop_size 是要对齐后生成的人脸图像大小
+            # warpAffine() 函数是OpenCV中用于进行仿射变换的函数，它通过变换矩阵将原始图像中的像素位置变换为目标位置。
             align_img = cv2.warpAffine(img, M, (crop_size, crop_size), borderValue=0.0)
             align_img_list.append(align_img)
             M_list.append(M)

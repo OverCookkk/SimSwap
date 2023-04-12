@@ -59,10 +59,10 @@ class fsModel(BaseModel):
         self.netG = Generator_Adain_Upsample(input_nc=3, output_nc=3, latent_size=512, n_blocks=9, deep=False)
         self.netG.to(device)
 
-
-
-
         # Id network
+        # arcface_model 是一个基于神经网络的分类器，其包括了基础的卷积层、池化层等基础网络结构，
+        # 以及一些特殊的结构设计，如Arcface 等，用于组合网络层次，并且将人脸特征向量映射到一个判别性的空间内。
+        # 在该空间内，不同的人脸特征向量可以通过欧氏距离等度量方式进行比较，从而实现人脸识别的任务。
         netArc_checkpoint = opt.Arc_path
         netArc_checkpoint = torch.load(netArc_checkpoint)
         self.netArc = netArc_checkpoint['model'].module
@@ -85,7 +85,7 @@ class fsModel(BaseModel):
         self.netD2.to(device)
 
         #
-        self.spNorm =SpecificNorm()
+        self.spNorm = SpecificNorm()
         self.downsample = nn.AvgPool2d(3, stride=2, padding=[1, 1], count_include_pad=False)
 
         # load networks
