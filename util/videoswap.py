@@ -100,7 +100,6 @@ def video_swap(video_path, id_vetor, swap_model, detect_model, save_path, temp_r
                 # 换脸结果列表
                 swap_result_list = []
 
-                # 帧数对齐
                 frame_align_crop_tenor_list = []
                 for frame_align_crop in frame_align_crop_list:
                     # BGR TO RGB
@@ -115,6 +114,7 @@ def video_swap(video_path, id_vetor, swap_model, detect_model, save_path, temp_r
                     swap_result_list.append(swap_result)
                     frame_align_crop_tenor_list.append(frame_align_crop_tenor)
 
+                # 换脸推理后生成的图像被放到了目标图像（id_vetor）的相应位置，所以需要将其转换回原图中的位置
                 reverse2wholeimage(frame_align_crop_tenor_list,
                                    swap_result_list,
                                    frame_mat_list,
@@ -141,11 +141,11 @@ def video_swap(video_path, id_vetor, swap_model, detect_model, save_path, temp_r
     path = os.path.join(temp_results_dir, '*.jpg')
     image_filenames = sorted(glob.glob(path))
 
-    # 序列
-    clips = ImageSequenceClip(image_filenames, fps=fps)
+    # 图像序列对象
+    clips = ImageSequenceClip(image_filenames, fps=fps)  # 写入所有图片和帧率
 
     if not no_audio:
         clips = clips.set_audio(video_audio_clip)
 
-    # 写入视频
+    # 保存生成的视频
     clips.write_videofile(save_path, audio_codec='aac')
